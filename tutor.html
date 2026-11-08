@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Панель тьютора: курс Python</title>
+<link rel="stylesheet" href="assets/site.css">
+<style>
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:760px){.tiles{grid-template-columns:1fr 1fr}}
+.tile{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px}
+.tile span{font-size:13px;color:var(--muted)}
+.tile b{display:block;font:700 26px var(--display);font-variant-numeric:tabular-nums;margin-top:4px}
+.tile small{color:var(--muted);font-size:12.5px}
+table.mx{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.mx th{font:600 12px var(--mono);color:var(--muted);text-align:center;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.mx th:first-child{text-align:left}
+table.mx td{padding:6px;border-bottom:1px solid var(--line);text-align:center}
+table.mx td:first-child{text-align:left;font-weight:600;white-space:nowrap}
+table.mx td.when{color:var(--muted);font-size:13px;white-space:nowrap}
+.cell{display:inline-block;min-width:74px;padding:6px 8px;border-radius:10px;font:700 13px var(--mono);border:1.5px solid transparent;background:var(--bg);color:var(--muted)}
+button.cell:hover{border-color:var(--accent)}
+.cell.p0{background:var(--coral-soft);color:var(--coral)}
+.cell.p1{background:var(--gold-soft);color:var(--gold)}
+.cell.p2{background:var(--mint-soft);color:var(--mint)}
+.cell.on{border-color:var(--accent)}
+.dot{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;font:700 13px var(--mono)}
+.dot.ok{background:var(--mint-soft);color:var(--mint)}
+.dot.no{background:var(--coral-soft);color:var(--coral)}
+.dot.warn{background:var(--gold-soft);color:var(--gold)}
+.dot.none{border:1px dashed var(--line);color:var(--muted)}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.tks{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:12px;align-items:start}
+.tk{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.tk h4{font:700 15px var(--body);display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px}
+.tk pre.code{max-height:260px;overflow:auto;font-size:12.5px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin-top:12px}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.msg{font-size:14px;color:var(--muted)}
+.msg b.ok{color:var(--mint)}.msg b.no{color:var(--coral)}
+textarea#paste{width:100%;min-height:100px;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--bg);color:var(--ink);font:13px var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="topbar"><a href="index.html">← Сайт курса</a></div>
+    <div style="height:14px"></div>
+    <div class="kicker">Только для тьютора</div>
+    <h1>Панель <span>тьютора</span></h1>
+    <p>Прогресс учеников по всем домашкам. Сдачи приходят из Google-таблицы автоматически; без неё можно вставить коды сдачи из мессенджера вручную. Звёзды за задачи можно перепроверить прямо здесь.</p>
+  </header>
+
+  <div class="grid">
+    <div class="card" id="conn"></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:8px"><h3>Ученики и домашки</h3><span class="msg" id="upd"></span></div>
+      <div class="tblwrap"><table class="mx" id="mx"></table></div>
+      <div class="legend"><span><i class="cell p2" style="min-width:0">80%+</i>почти всё</span><span><i class="cell p1" style="min-width:0">40–79%</i>половина</span><span><i class="cell p0" style="min-width:0">&lt;40%</i>мало</span><span>Нажмите на клетку, чтобы увидеть ответы и код.</span></div>
+    </div>
+    <div class="card" id="detail" hidden></div>
+    <details class="card">
+      <summary style="cursor:pointer;font-weight:700">Добавить коды сдачи вручную</summary>
+      <p class="msg">Если ученик прислал сообщение с кодом сдачи (начинается с <code>KP1z.</code>), вставьте его сюда. Можно сразу много сообщений подряд. Эти сдачи хранятся только в этом браузере.</p>
+      <textarea id="paste" aria-label="Сообщения учеников"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn" id="addBtn">Добавить</button><span class="msg" id="addMsg"></span></div>
+    </details>
+  </div>
+</div>
+<footer class="wrap">Код учеников перепроверяется настоящим Python в этом браузере. Пароль хранится только на этом устройстве.</footer>
+
+<script src="config.js"></script>
+<script src="assets/lessons.js"></script>
+<script src="assets/runner.js"></script>
+<script src="assets/hw-engine.js"></script>
+<script>
+(async function(){
+  const CFG = window.SITE_CONFIG || {};
+  const A = window.HW;
+  const { esc, hl, $, $$, el } = A;
+  const DATA = {};
+  A.mount = d => { DATA[d.id] = d; };
+  const HWS = LESSONS.filter(L => L.hwId);
+  for (const L of HWS){
+    await new Promise(res => { const s = document.createElement('script'); s.src = L.hw.replace('.html', '.js'); s.onload = res; s.onerror = res; document.body.appendChild(s); });
+  }
+  const KEY = 'kiber-tutor-v1';
+  let T = {}; try { T = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {}
+  T.codes = T.codes || {};
+  const saveT = () => { try { localStorage.setItem(KEY, JSON.stringify(T)); } catch (e) {} };
+  const nkey = n => String(n || '').toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
+  let remote = [];      // [{name, hw, ts, data:payload}]
+  let current = null;   // {k, hw}
+
+  /* ---------- подключение ---------- */
+  const conn = $('#conn');
+  function paintConn(status){
+    if (!CFG.endpoint){
+      conn.innerHTML = `<h3>Автоматическая отправка не подключена</h3><p>Пока в <code>config.js</code> не указан адрес Google Apps Script, ученики сдают домашку кодом из мессенджера — вставляйте коды внизу страницы. Как подключить автоматику за 10 минут — в <a href="https://github.com/svet04ka/python#автоматическая-отправка-прогресса" target="_blank" rel="noopener">README репозитория</a>.</p>`;
+      return;
+    }
+    conn.innerHTML = `<h3>Google-таблица</h3><div class="row" style="margin-top:8px"><label for="pw">Пароль из скрипта:</label><input class="inp" id="pw" type="password" style="width:220px" autocomplete="current-password"><button class="btn" id="load">Загрузить сдачи</button><span class="msg" id="cmsg">${status || ''}</span></div>`;
+    $('#pw').value = T.pw || '';
+    $('#load').addEventListener('click', () => { T.pw = $('#pw').value.trim(); saveT(); load(); });
+    $('#pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('#load').click(); });
+  }
+  async function load(){
+    const m = $('#cmsg');
+    if (!T.pw){ m.innerHTML = '<b class="no">Введите пароль.</b>'; return; }
+    m.textContent = 'Загружаю…';
+    try {
+      const r = await fetch(CFG.endpoint + (CFG.endpoint.includes('?') ? '&' : '?') + 'action=list&key=' + encodeURIComponent(T.pw));
+      const j = await r.json();
+      if (!j.ok){ m.innerHTML = j.error === 'key' ? '<b class="no">Неверный пароль.</b>' : '<b class="no">Ошибка таблицы.</b>'; return; }
+      remote = j.rows.map(x => { let d = null; try { d = JSON.parse(x.data); } catch (e) {} return d ? { name: x.name, hw: x.hw, ts: x.ts || d.ts, data: d, src: 'sheet' } : null; }).filter(Boolean);
+      m.innerHTML = `<b class="ok">Загружено сдач: ${remote.length}.</b>`;
+      $('#upd').textContent = 'Обновлено в ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      render();
+    } catch (e){ m.innerHTML = '<b class="no">Не удалось связаться с таблицей.</b> Проверьте адрес в config.js и что веб-приложение доступно всем.'; }
+  }
+  paintConn();
+  if (CFG.endpoint && T.pw){ load(); setInterval(() => { if (document.visibilityState === 'visible') load(); }, 120000); }
+
+  /* ---------- коды вручную ---------- */
+  function fromB64url(s){ s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+  async function decode(code){
+    let raw = fromB64url(code.slice(5));
+    if (code[3] === 'z'){ const ds = new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw')); raw = new Uint8Array(await new Response(ds).arrayBuffer()); }
+    const d = JSON.parse(new TextDecoder().decode(raw)); if (!d || !d.name || !d.hw) throw new Error('bad'); return d;
+  }
+  $('#addBtn').addEventListener('click', async () => {
+    const codes = $('#paste').value.match(/KP1[zj]\.[A-Za-z0-9_-]+/g) || [];
+    const m = $('#addMsg');
+    if (!codes.length){ m.innerHTML = '<b class="no">Код сдачи не найден.</b> Он начинается с KP1z.'; return; }
+    let ok = 0, bad = 0;
+    for (const c of codes){ try { const d = await decode(c); const k = nkey(d.name) + '|' + d.hw; if (!T.codes[k] || T.codes[k].ts <= d.ts){ T.codes[k] = d; ok++; } } catch (e){ bad++; } }
+    saveT(); $('#paste').value = '';
+    m.innerHTML = `<b class="ok">Добавлено: ${ok}.</b>` + (bad ? ` Повреждённых кодов: ${bad} — попросите ученика прислать сообщение ещё раз.` : '');
+    render();
+  });
+
+  /* ---------- данные ---------- */
+  function merged(){
+    const map = {};
+    const put = (d, src) => { const k = nkey(d.name) + '|' + d.hw; if (!map[k] || (map[k].ts || 0) < (d.ts || 0)) map[k] = Object.assign({}, d, { src }); };
+    remote.forEach(r => put(r.data, 'sheet'));
+    Object.values(T.codes).forEach(d => put(d, 'code'));
+    const students = {};
+    Object.values(map).forEach(d => { const k = nkey(d.name); (students[k] = students[k] || { name: d.name, hw: {}, last: 0 }); students[k].hw[d.hw] = d; students[k].last = Math.max(students[k].last, d.ts || 0); });
+    return students;
+  }
+  const fmt = ts => ts ? new Date(ts).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+
+  function render(){
+    const st = merged();
+    const list = Object.entries(st).sort((a, b) => a[1].name.localeCompare(b[1].name, 'ru'));
+    // плитки
+    const subs = list.reduce((s, [, x]) => s + Object.keys(x.hw).length, 0);
+    let pctSum = 0, pctN = 0; const solved = {}, claimed = {};
+    list.forEach(([, x]) => Object.values(x.hw).forEach(d => { if (d.max){ pctSum += d.stars / d.max; pctN++; } Object.entries(d.tasks || {}).forEach(([id, t]) => { const k = d.hw + '/' + id; claimed[k] = (claimed[k] || 0) + 1; if (t.d) solved[k] = (solved[k] || 0) + 1; }); }));
+    let hard = '—', hardRate = 2;
+    Object.keys(claimed).forEach(k => { if (claimed[k] < 2) return; const r = (solved[k] || 0) / claimed[k]; if (r < hardRate){ hardRate = r; const [hw, id] = k.split('/'); const D = DATA[hw]; const t = D && D.tasks.find(x => x.id === id); hard = t ? `Урок ${D.lesson}: ${t.title}` : k; } });
+    $('#tiles').innerHTML = `<div class="tile"><span>Учеников</span><b>${list.length}</b><small>прислали хоть одну домашку</small></div><div class="tile"><span>Сдач</span><b>${subs}</b><small>ученик × домашка</small></div><div class="tile"><span>Средний результат</span><b>${pctN ? Math.round(pctSum / pctN * 100) : 0}%</b><small>от максимума звёзд</small></div><div class="tile"><span>Труднее всего</span><b style="font-size:15px;line-height:1.35">${esc(hard)}</b><small>${hardRate <= 1 ? 'решили ' + Math.round(hardRate * 100) + '% начавших' : 'пока мало данных'}</small></div>`;
+    // матрица
+    const mx = $('#mx');
+    mx.innerHTML = `<thead><tr><th>Ученик</th>${HWS.map(L => `<th title="${esc(L.title)}">Урок ${L.n}</th>`).join('')}<th>Активность</th></tr></thead>`;
+    const tb = document.createElement('tbody'); mx.appendChild(tb);
+    if (!list.length) tb.innerHTML = `<tr><td colspan="${HWS.length + 2}" style="text-align:center;color:var(--muted);padding:26px">Пока нет ни одной сдачи.</td></tr>`;
+    list.forEach(([k, x]) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td></td>` + HWS.map(L => { const d = x.hw[L.hwId]; if (!d) return '<td><span class="cell">—</span></td>'; const p = d.max ? d.stars / d.max : 0; const on = current && current.k === k && current.hw === L.hwId ? ' on' : ''; return `<td><button class="cell ${p >= .8 ? 'p2' : p >= .4 ? 'p1' : 'p0'}${on}" data-k="${esc(k).replace(/"/g, '&quot;')}" data-hw="${L.hwId}">${d.stars}/${d.max} ★</button></td>`; }).join('') + `<td class="when">${fmt(x.last)}</td>`;
+      tr.firstChild.textContent = x.name;
+      tb.appendChild(tr);
+    });
+    $$('button.cell', mx).forEach(b => b.addEventListener('click', () => { current = { k: b.dataset.k, hw: b.dataset.hw }; render(); showDetail(); }));
+    if (current) showDetail(true);
+  }
+
+  /* ---------- детали ---------- */
+  function showDetail(quiet){
+    const st = merged(); const x = st[current.k]; const det = $('#detail');
+    const d = x && x.hw[current.hw]; const D = DATA[current.hw];
+    if (!d || !D){ det.hidden = true; return; }
+    if (quiet && det.dataset.cur === current.k + current.hw + d.ts) return;
+    det.dataset.cur = current.k + current.hw + d.ts;
+    det.hidden = false;
+    const dots = (arr) => `<div class="dots">${(arr || []).map((v, i) => `<span class="dot ${v === 2 ? 'ok' : v === 1 ? 'warn' : 'none'}" title="${v === 2 ? 'с первой попытки' : v === 1 ? 'не с первой попытки' : 'не отвечал(а)'}">${i + 1}</span>`).join('')}</div>`;
+    det.innerHTML = `<div class="row" style="justify-content:space-between"><h3></h3><div class="row"><button class="btn" id="recheckAll">Перепроверить все задачи</button><button class="btn ghost" id="delSub">Удалить сдачу</button></div></div>
+      <p class="msg">Урок ${D.lesson}: ${esc(D.short || D.title)} · ${d.stars} из ${d.max} ★ · обновлено ${fmt(d.ts)} · ${d.src === 'sheet' ? 'из таблицы' : 'из кода сдачи'}</p>
+      <div class="row" style="gap:30px;align-items:flex-start;margin-top:8px">${D.quiz && D.quiz.length ? `<div><b style="font-size:13px">Квиз</b>${dots(d.quiz)}</div>` : ''}${D.bugs && D.bugs.length ? `<div><b style="font-size:13px">Найди ошибку</b>${dots(d.bugs)}</div>` : ''}</div>
+      <div class="tks"></div>`;
+    $('h3', det).textContent = x.name;
+    const host = $('.tks', det);
+    const boxes = [];
+    D.tasks.forEach((Tk, i) => {
+      const t = (d.tasks || {})[Tk.id] || { d: 0, c: '' };
+      const box = el('div', 'tk');
+      const code = t.c || '';
+      const stat = t.d ? '<span class="dot ok" title="ученик решил">✓</span>' : code ? '<span class="dot no" title="начал, не решил">✗</span>' : '<span class="dot none" title="не начинал">·</span>';
+      box.innerHTML = `<h4><span>${i + 1}. ${esc(Tk.title)}</span>${stat}</h4>` + (code ? `<p class="msg" style="margin:0">Проверок: ${t.n || 0}${t.i ? ' · ввод: <code>' + esc(t.i.replace(/\n/g, ' ⏎ ')) + '</code>' : ''}</p><pre class="code">${hl(code)}</pre>${Tk.kind === 'turtle' ? '<canvas class="turtle" width="800" height="500" hidden></canvas>' : ''}<div class="console" hidden></div><ul class="checks"></ul><div class="btns"><button class="btn ghost rc">▶ Перепроверить</button></div>` : '<p class="msg" style="margin:0">Код не менялся — задачу не начинали.</p>');
+      host.appendChild(box);
+      if (!code) return;
+      const rc = async () => {
+        const btn = $('.rc', box); btn.disabled = true; $('.checks', box).innerHTML = '<li>Проверяю…</li>';
+        const r = await A.checkTask(Tk, code, t.i ? t.i.split('\n') : []);
+        btn.disabled = false;
+        $('.checks', box).innerHTML = r.items.map(([ok, l, note]) => `<li class="${ok ? 'ok' : 'no'}"><span class="chk">${esc(l)}${note ? `<small>${esc(note)}</small>` : ''}</span></li>`).join('') + `<li class="${r.ok ? 'ok' : 'no'}"><b>${r.ok ? 'Решено верно' : 'Есть замечания'}</b></li>`;
+        const con = $('.console', box); if (r.res){ con.hidden = false; con.innerHTML = A.consoleHTML(r.res); }
+        const cv = $('canvas', box); if (cv && r.res){ cv.hidden = false; A.renderOps(cv, r.res.ops, r.res.ops.length, { mode: r.res.mode }); }
+      };
+      $('.rc', box).addEventListener('click', rc);
+      boxes.push(rc);
+    });
+    $('#recheckAll').addEventListener('click', async () => { for (const f of boxes) await f(); });
+    const del = $('#delSub');
+    del.addEventListener('click', async () => {
+      if (del.dataset.sure !== '1'){ del.dataset.sure = '1'; del.textContent = 'Точно удалить? Нажмите ещё раз'; return; }
+      delete T.codes[current.k + '|' + current.hw]; saveT();
+      if (d.src === 'sheet' && CFG.endpoint && T.pw){ try { await fetch(CFG.endpoint + '?action=delete&key=' + encodeURIComponent(T.pw) + '&name=' + encodeURIComponent(d.name) + '&hw=' + encodeURIComponent(d.hw)); } catch (e) {} remote = remote.filter(r => !(nkey(r.name) === current.k && r.hw === current.hw)); }
+      current = null; $('#detail').hidden = true; render();
+    });
+    if (!quiet) det.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  render();
+})();
+</script>
+</body>
+</html>

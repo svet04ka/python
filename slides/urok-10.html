@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Урок 10: Библиотеки и рефакторинг — презентация</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/slides.css">
+</head>
+<body>
+<main class="deck" aria-label="Презентация: урок 10">
+<section class="slide title"><div class="k">Python · Урок 10</div><h1>Библиотеки и рефакторинг</h1><p>Модули math, random и time, игра в кости и правила чистого кода</p><div class="foot">KIBERone · Программирование на Python</div></section>
+<section class="slide "><h2>План урока</h2><ol><li>Что такое библиотеки (модули)</li><li>math — математика</li><li>random — случайность</li><li>Игра в кости</li><li>Рефакторинг и чистый код</li><li>Бонус: модуль time</li></ol></section>
+<section class="slide "><h2>Библиотеки — готовые инструменты</h2><p>Библиотеки — наборы функций, которые уже написали другие программисты. Берём и пользуемся, чтобы не «изобретать велосипед».</p><div class="cards" style="margin-top:20px"><div class="cardx"><h3>turtle</h3><p>уже знакомы: рисуем черепашкой</p></div><div class="cardx"><h3>math</h3><p>математика: корни, округление, π</p></div><div class="cardx"><h3>random</h3><p>случайные числа и выбор</p></div></div><div class="note" style="margin-top:24px"><code>import math</code> — подключить модуль. Дальше пишем <code>math.</code> и имя функции.</div></section>
+<section class="slide "><h2>Модуль math</h2><div class="cols"><div><ul><li><code>math.ceil(x)</code> — округлить вверх</li><li><code>math.floor(x)</code> — округлить вниз</li><li><code>math.sqrt(x)</code> — квадратный корень</li><li><code>math.pi</code> — число π</li><li><code>math.sin</code>, <code>math.cos</code> — тригонометрия</li></ul></div><div><pre class="code sm"><span class="k">import</span> math
+
+<span class="f">print</span>(math.<span class="f">ceil</span>(<span class="n">4.2</span>))
+<span class="f">print</span>(math.<span class="f">floor</span>(<span class="n">4.8</span>))
+<span class="f">print</span>(math.<span class="f">sqrt</span>(<span class="n">81</span>))
+<span class="f">print</span>(math.pi)</pre><div class="out">5
+4
+9.0
+3.141592653589793</div></div></div></section>
+<section class="slide "><h2>Длина окружности</h2><div class="cols"><div><p>Радиус вводится с клавиатуры. Длина окружности = <b>2 · π · R</b>. Потом отбрасываем дробную часть, округлив вниз.</p></div><div><pre class="code sm"><span class="k">import</span> math
+
+R = <span class="f">float</span>(<span class="f">input</span>(<span class="s">"Радиус: "</span>))
+length = <span class="n">2</span> * math.pi * R
+<span class="f">print</span>(length)
+<span class="f">print</span>(math.<span class="f">floor</span>(length))</pre><div class="out">Радиус: <span class="in">10</span>
+62.83185307179586
+62</div></div></div></section>
+<section class="slide "><h2>Модуль random</h2><div class="cols"><div><ul><li><code>random.choice(список)</code> — случайный элемент</li><li><code>random.randint(1, 6)</code> — случайное целое от 1 до 6</li><li><code>random.shuffle(список)</code> — перемешать</li></ul><p style="margin-top:16px">Запусти несколько раз — результат каждый раз разный!</p></div><div><pre class="code sm"><span class="k">import</span> random
+
+fruits = [<span class="s">"яблоко"</span>, <span class="s">"груша"</span>, <span class="s">"банан"</span>]
+<span class="f">print</span>(random.<span class="f">choice</span>(fruits))
+<span class="f">print</span>(random.<span class="f">randint</span>(<span class="n">1</span>, <span class="n">6</span>))
+random.<span class="f">shuffle</span>(fruits)
+<span class="f">print</span>(fruits)</pre></div></div></section>
+<section class="slide "><h2>Розыгрыш призов</h2><div class="cols"><div><p>Кто получит главный приз? Пусть решит random.</p></div><div><pre class="code sm"><span class="k">import</span> random
+
+players = [<span class="s">"Аня"</span>, <span class="s">"Петя"</span>, <span class="s">"Маша"</span>, <span class="s">"Ваня"</span>]
+winner = random.<span class="f">choice</span>(players)
+<span class="f">print</span>(<span class="s">"Главный приз получает"</span>, winner)</pre></div></div></section>
+<section class="slide "><h2><small>Первая версия</small>Игра в кости</h2><div class="cols wide"><div><pre class="code xxs"><span class="k">import</span> random
+player1 = <span class="f">input</span>(<span class="s">"Имя первого игрока: "</span>)
+player2 = <span class="f">input</span>(<span class="s">"Имя второго игрока: "</span>)
+dice1 = [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>, <span class="n">5</span>, <span class="n">6</span>]
+dice2 = [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>, <span class="n">5</span>, <span class="n">6</span>]
+score1 = <span class="n">0</span>
+score2 = <span class="n">0</span>
+<span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="n">3</span>):
+    <span class="f">input</span>(player1 + <span class="s">", нажми Enter, чтобы бросить кости"</span>)
+    result = random.<span class="f">choice</span>(dice1) + random.<span class="f">choice</span>(dice2)
+    <span class="f">print</span>(<span class="s">"Выпало:"</span>, result)
+    score1 = score1 + result
+    <span class="f">input</span>(player2 + <span class="s">", нажми Enter, чтобы бросить кости"</span>)
+    result = random.<span class="f">choice</span>(dice1) + random.<span class="f">choice</span>(dice2)
+    <span class="f">print</span>(<span class="s">"Выпало:"</span>, result)
+    score2 = score2 + result
+<span class="k">if</span> score1 &gt; score2:
+    <span class="f">print</span>(<span class="s">"Победил"</span>, player1)
+<span class="k">elif</span> score2 &gt; score1:
+    <span class="f">print</span>(<span class="s">"Победил"</span>, player2)
+<span class="k">else</span>:
+    <span class="f">print</span>(<span class="s">"Ничья"</span>)</pre></div><div><p>Два игрока бросают по две кости три раза. У кого сумма больше — тот победил.</p><p><code>input()</code> — чтобы игра не пролетала за долю секунды.</p></div></div></section>
+<section class="slide "><h2>Что не так с этим кодом?</h2><div class="cols"><div><ul><li>Код для первого и второго игрока <b>почти одинаковый</b>.</li><li>Условие победы — отдельная часть логики.</li><li>Если захотим 3 игрока — придётся копировать ещё.</li></ul></div><div class="note" style="margin:0">Одинаковые куски кода — сигнал: <b>выдели их в функцию</b>.</div></div></section>
+<section class="slide "><h2><small>Улучшаем код, не меняя поведение</small>Рефакторинг</h2><div class="cols"><div><pre class="code xxs"><span class="k">import</span> random
+
+<span class="k">def</span> <span class="f">rollDice</span>():
+    <span class="k">return</span> random.<span class="f">randint</span>(<span class="n">1</span>, <span class="n">6</span>) + random.<span class="f">randint</span>(<span class="n">1</span>, <span class="n">6</span>)
+
+<span class="k">def</span> <span class="f">playerTurn</span>(name):
+    <span class="f">input</span>(name + <span class="s">", нажми Enter, чтобы бросить кости"</span>)
+    result = <span class="f">rollDice</span>()
+    <span class="f">print</span>(name, <span class="s">"выбросил"</span>, result)
+    <span class="k">return</span> result
+
+<span class="k">def</span> <span class="f">announceWinner</span>(name1, score1, name2, score2):
+    <span class="k">if</span> score1 &gt; score2:
+        <span class="f">print</span>(<span class="s">"Победил"</span>, name1)
+    <span class="k">elif</span> score2 &gt; score1:
+        <span class="f">print</span>(<span class="s">"Победил"</span>, name2)
+    <span class="k">else</span>:
+        <span class="f">print</span>(<span class="s">"Ничья"</span>)</pre></div><div><pre class="code xxs">player1 = <span class="f">input</span>(<span class="s">"Имя первого игрока: "</span>)
+player2 = <span class="f">input</span>(<span class="s">"Имя второго игрока: "</span>)
+score1 = <span class="n">0</span>
+score2 = <span class="n">0</span>
+<span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="n">3</span>):
+    score1 += <span class="f">playerTurn</span>(player1)
+    score2 += <span class="f">playerTurn</span>(player2)
+<span class="f">announceWinner</span>(player1, score1, player2, score2)</pre><p style="margin-top:16px;font-size:22px">Игра работает так же, но код читается как рассказ: бросок, ход игрока, объявление победителя.</p></div></div></section>
+<section class="slide "><h2>Чистый код: одна задача — три решения</h2><p style="font-size:24px">Вывести все числа списка, которые меньше 10.</p><div class="cards"><div class="cardx"><h3>Понятно</h3><pre class="code xs"><span class="k">for</span> number <span class="k">in</span> numbers:
+    <span class="k">if</span> number &lt; <span class="n">10</span>:
+        <span class="f">print</span>(number)</pre></div><div class="cardx"><h3>Слишком сложно</h3><pre class="code xs"><span class="f">print</span>(<span class="f">list</span>(<span class="f">filter</span>(
+  <span class="k">lambda</span> x: x &lt; <span class="n">10</span>,
+  numbers)))</pre></div><div class="cardx"><h3>Опытно</h3><pre class="code xs"><span class="f">print</span>([n <span class="k">for</span> n <span class="k">in</span> numbers
+       <span class="k">if</span> n &lt; <span class="n">10</span>])</pre></div></div></section>
+<section class="slide "><h2>Имена говорят за себя</h2><div class="cols"><div><pre class="code xs">a = <span class="f">int</span>(<span class="f">input</span>())
+<span class="k">if</span> a % <span class="n">4</span> == <span class="n">0</span> <span class="k">and</span> a % <span class="n">100</span> != <span class="n">0</span> <span class="k">or</span> a % <span class="n">400</span> == <span class="n">0</span>:
+    <span class="f">print</span>(<span class="s">"Да"</span>)
+<span class="k">else</span>:
+    <span class="f">print</span>(<span class="s">"Нет"</span>)</pre><p style="margin-top:14px">Что делает этот код? Сразу не понять.</p></div><div><pre class="code xs"><span class="k">def</span> <span class="f">isLeapYear</span>(year):
+    <span class="k">return</span> year % <span class="n">4</span> == <span class="n">0</span> <span class="k">and</span> year % <span class="n">100</span> != <span class="n">0</span> \
+        <span class="k">or</span> year % <span class="n">400</span> == <span class="n">0</span>
+
+year = <span class="f">int</span>(<span class="f">input</span>())
+<span class="k">if</span> <span class="f">isLeapYear</span>(year):
+    <span class="f">print</span>(<span class="s">"Високосный"</span>)
+<span class="k">else</span>:
+    <span class="f">print</span>(<span class="s">"Обычный"</span>)</pre><div class="out"><span class="in">2024</span>
+Високосный</div></div></div></section>
+<section class="slide "><h2>Правила чистого кода</h2><ul><li>Имя переменной объясняет, что в ней: <code>apples</code>, а не <code>a</code>.</li><li>Список — во множественном числе: <code>numbers</code>, а не <code>number</code>.</li><li>Имя функции — действие: <code>drawBoard</code>, <code>isLeapYear</code>.</li><li>Имена — на английском, слова слитно с большой буквы или через <code>_</code>.</li><li>Повторяющийся код — в функцию.</li><li>Комментарии — там, где без них не понять, а не на каждой строке.</li></ul></section>
+<section class="slide "><h2>Бонус: модуль time</h2><div class="cols"><div><ul><li><code>time.sleep(2)</code> — пауза 2 секунды</li><li><code>time.time()</code> — секунды с 1 января 1970</li><li><code>time.ctime(t)</code> — время в читаемом виде</li></ul><p style="margin-top:14px">Задача: какое время будет ровно через неделю? В неделе 60 · 60 · 24 · 7 = 604 800 секунд.</p></div><div><pre class="code sm"><span class="k">import</span> time
+
+week = <span class="n">60</span> * <span class="n">60</span> * <span class="n">24</span> * <span class="n">7</span>
+<span class="f">print</span>(time.<span class="f">ctime</span>(time.<span class="f">time</span>() + week))</pre></div></div></section>
+<section class="slide "><h2>Итоги урока</h2><ul><li><code>import</code> подключает библиотеку.</li><li>math — округление, корни, π; random — случайности.</li><li>Рефакторинг делает код понятнее, не меняя его работу.</li><li>Хорошие имена и функции — основа чистого кода.</li></ul></section>
+</main>
+<script src="../assets/slides.js"></script>
+</body>
+</html>

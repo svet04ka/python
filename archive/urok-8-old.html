@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Урок 8. Функции с черепашкой</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1ea; --panel:#fffdf8; --ink:#1d2321; --muted:#6b706c; --line:#e2ddd2;
+  --green:#2f8a5b; --green-soft:#dff1e6; --amber:#e8a33d; --amber-soft:#fcefd6;
+  --code-bg:#2b2b2b; --code-fg:#a9b7c6;
+  --fs:18px;
+}
+*{box-sizing:border-box}
+button{font-family:"Golos Text",system-ui,sans-serif}
+html,body{margin:0;height:100%}
+body{font-family:"Golos Text",system-ui,sans-serif;font-size:var(--fs);color:var(--ink);background:var(--bg);display:flex;overflow:hidden}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+
+/* ---------- sidebar ---------- */
+aside{width:21em;flex:none;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;height:100vh}
+.brand{padding:1em 1.1em .8em;border-bottom:1px solid var(--line);display:flex;gap:.6em;align-items:center}
+.brand svg{flex:none}
+.brand b{display:block;font-size:1.05em}
+.brand span{color:var(--muted);font-size:.8em}
+.side-scroll{overflow:auto;padding:.6em .8em 1.2em;flex:1}
+.side-h{font-size:.72em;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:1em .35em .45em}
+.fn{display:block;padding:.42em .55em;border-radius:.5em;margin-bottom:.15em;border:1.5px solid transparent;transition:background .25s,border-color .25s,opacity .25s}
+.fn code{font-size:.84em;font-weight:600;color:#3a3f3c}
+.fn small{display:block;color:var(--muted);font-size:.76em;line-height:1.3;margin-top:.1em}
+.fn.used{background:var(--amber-soft);border-color:var(--amber)}
+.fn.used code{color:#8a4b00}
+body.focus .fn:not(.used){opacity:.45}
+.mine .fn{background:var(--green-soft)}
+.mine .fn code{color:#1f6640}
+.mine .fn.new{border-color:var(--green);animation:pop .5s}
+.mine-empty{color:var(--muted);font-size:.8em;padding:.2em .55em}
+@keyframes pop{0%{transform:scale(.9);opacity:0}100%{transform:none;opacity:1}}
+.legend{font-size:.72em;color:var(--muted);padding:.2em .4em;display:flex;align-items:center;gap:.4em}
+.legend i{width:.9em;height:.9em;border-radius:.2em;background:var(--amber-soft);border:1.5px solid var(--amber);display:inline-block}
+
+/* ---------- main ---------- */
+main{flex:1;display:flex;flex-direction:column;height:100vh;min-width:0}
+header{display:flex;align-items:center;gap:1em;padding:.7em 1.4em;border-bottom:1px solid var(--line);background:var(--panel)}
+.dots{display:flex;gap:.3em;flex-wrap:wrap;flex:1}
+.dot{width:2em;height:2em;border-radius:50%;border:1.5px solid var(--line);background:#fff;font:600 .78em "Golos Text",system-ui,sans-serif;color:var(--muted);cursor:pointer}
+.dot.done{background:var(--green-soft);border-color:#b9dcc6;color:var(--green)}
+.dot.cur{background:var(--green);border-color:var(--green);color:#fff}
+.tools{display:flex;gap:.35em}
+.btn{font:600 .85em "Golos Text",system-ui,sans-serif;border:1.5px solid var(--line);background:#fff;border-radius:.55em;padding:.45em .8em;cursor:pointer;color:var(--ink)}
+.btn:hover{border-color:#bdb6a8}
+.btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.btn.primary:hover{background:#26774d}
+
+.stage{flex:1;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1.4em;padding:1.3em 1.6em;overflow:auto;align-items:start}
+.stage.full{grid-template-columns:1fr}
+.kicker{color:var(--green);font-weight:700;font-size:.8em;letter-spacing:.06em;text-transform:uppercase}
+h1{font-size:2em;line-height:1.1;margin:.15em 0 .45em;font-weight:800}
+.text p{margin:.35em 0 .6em;line-height:1.45}
+.text ul{margin:.3em 0 .7em;padding-left:1.2em;line-height:1.45}
+.text li{margin:.15em 0}
+.text code{background:#ebe6db;padding:.05em .3em;border-radius:.25em;font-size:.9em}
+
+.code{background:var(--code-bg);color:var(--code-fg);border-radius:.8em;margin:.7em 0;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.code-top{display:flex;justify-content:space-between;align-items:center;padding:.45em .9em;background:#3c3f41;color:#bbb;font:.72em "JetBrains Mono"}
+.code-top .copy{background:#4c5052;color:#ddd;border:0;border-radius:.35em;padding:.3em .7em;font:600 1em "Golos Text",system-ui,sans-serif;cursor:pointer}
+.code-top .copy.ok{background:var(--green);color:#fff}
+.code pre{margin:0;padding:.8em 0;font:1em/1.5 "JetBrains Mono",monospace;overflow:auto}
+.code .ln{display:block;padding:0 1em 0 0}
+.code .ln::before{content:attr(data-n);display:inline-block;width:2.4em;text-align:right;margin-right:1em;color:#606366}
+.code .ln.dim{opacity:.38}
+.code .ln.hl{background:rgba(232,163,61,.16);box-shadow:inset 3px 0 0 var(--amber)}
+.k{color:#cc7832}.s{color:#6a8759}.n{color:#6897bb}.c{color:#808080;font-style:italic}.f{color:#ffc66d}.b{color:#8888c6}.m{color:#e0c48a}
+
+.task{background:var(--amber-soft);border:1.5px solid #f1cf91;border-radius:.8em;padding:.75em 1em;margin:.8em 0}
+.task b{color:#8a4b00}
+.note{background:#e9f0f6;border:1.5px solid #c9d9e8;border-radius:.8em;padding:.7em 1em;margin:.8em 0;font-size:.92em}
+
+.right{position:sticky;top:0}
+.canvas-card{background:#fff;border:1px solid var(--line);border-radius:1em;padding:.8em;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.canvas-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5em;font-weight:600;font-size:.9em;color:var(--muted)}
+canvas{width:100%;aspect-ratio:1;display:block;border-radius:.6em;background:#fff;border:1px dashed #e4e0d7}
+.canvas-btns{display:flex;gap:.4em;margin-top:.6em;flex-wrap:wrap}
+.variants{display:flex;gap:.35em;flex-wrap:wrap;margin:.2em 0 .4em}
+.variants .btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.console{background:#1e1f22;color:#d6d6d6;font:1.1em/1.6 "JetBrains Mono";border-radius:.8em;padding:1em 1.2em;min-height:7em}
+.console .p{color:#6a8759}
+
+/* anatomy */
+.anat{display:flex;align-items:flex-end;gap:.15em;font:1.6em "JetBrains Mono";margin:1.1em 0 .4em;flex-wrap:wrap}
+.anat div{text-align:center}
+.anat small{display:block;font:600 .42em "Golos Text",system-ui,sans-serif;color:var(--muted);margin-bottom:.4em;line-height:1.2;max-width:9em}
+.anat span{display:inline-block;padding:.05em .25em;border-radius:.2em}
+.a1{background:#dfe6fb;color:#2442b8}.a2{background:#cfe9d6;color:#1f6640}.a3{background:#f6d4d8;color:#9d2433}.a4{background:#fbedc9;color:#7b5600}
+
+.mod{display:grid;grid-template-columns:repeat(4,auto);gap:.25em 1em;font:1em "JetBrains Mono";background:#fff;border:1px solid var(--line);border-radius:.7em;padding:.6em 1em;width:max-content;margin:.4em 0 .8em}
+.mod .hd{font:700 .8em "JetBrains Mono",monospace;color:var(--muted)}
+.mod .sw{width:1.4em;height:1.4em;border-radius:.3em;display:inline-block;vertical-align:middle}
+
+.mixer{background:#fff;border:1px solid var(--line);border-radius:.8em;padding:.8em 1em;margin:.7em 0}
+.mixer label{display:grid;grid-template-columns:5.5em 1fr 3em;align-items:center;gap:.6em;font-weight:600;font-size:.9em}
+.mixer input{width:100%}
+.mix-out{display:flex;gap:1em;align-items:center;margin-top:.5em}
+.mix-sw{width:3.4em;height:3.4em;border-radius:.6em;border:1px solid var(--line)}
+.mix-out code{font-size:1.05em}
+
+.cover{max-width:46em}
+.cover h1{font-size:2.8em}
+.plan{counter-reset:p;list-style:none;padding:0}
+.plan li{counter-increment:p;padding:.35em 0 .35em 2.4em;position:relative}
+.plan li::before{content:counter(p);position:absolute;left:0;top:.3em;width:1.7em;height:1.7em;border-radius:50%;background:var(--green-soft);color:var(--green);font-weight:700;display:grid;place-items:center;font-size:.85em}
+
+footer{display:flex;justify-content:space-between;align-items:center;padding:.6em 1.6em;border-top:1px solid var(--line);background:var(--panel)}
+footer .hint{color:var(--muted);font-size:.78em}
+footer .btn{font-size:1em;padding:.55em 1.2em}
+@media (max-width:900px){aside{display:none}.stage{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="focus">
+
+<aside>
+  <div class="brand">
+    <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#dff1e6"/><ellipse cx="20" cy="21" rx="9" ry="10.5" fill="#2f8a5b"/><circle cx="20" cy="8.5" r="3.6" fill="#2f8a5b"/><circle cx="11" cy="14" r="2.6" fill="#2f8a5b"/><circle cx="29" cy="14" r="2.6" fill="#2f8a5b"/><circle cx="11" cy="28" r="2.6" fill="#2f8a5b"/><circle cx="29" cy="28" r="2.6" fill="#2f8a5b"/><path d="M15 17h10M14 22h12M15 27h10" stroke="#9fd3b4" stroke-width="1.6"/></svg>
+    <div><b>Шпаргалка</b><span>команды черепашки</span></div>
+  </div>
+  <div class="side-scroll">
+    <div class="legend"><i></i> есть в коде этого шага</div>
+    <div class="side-h">Наши функции</div>
+    <div class="mine" id="mine"></div>
+    <div id="ref"></div>
+  </div>
+</aside>
+
+<main>
+  <header>
+    <div class="dots" id="dots"></div>
+    <div class="tools">
+      <button class="btn" id="fsDown" title="Мельче">A−</button>
+      <button class="btn" id="fsUp" title="Крупнее">A+</button>
+      <button class="btn" id="focusBtn" title="Приглушать неиспользуемые команды">Подсветка</button>
+      <button class="btn" id="fullBtn" title="Во весь экран">⛶</button>
+    </div>
+  </header>
+  <section class="stage" id="stage"></section>
+  <footer>
+    <button class="btn" id="prev">← Назад</button>
+    <span class="hint">Стрелки ← → на клавиатуре тоже листают шаги</span>
+    <button class="btn primary" id="next">Дальше →</button>
+  </footer>
+</main>
+
+<script>
+/* ================= Reference (sidebar) ================= */
+const REF = [
+  {h:"Движение", items:[
+    ["forward","t.forward(100)","вперёд на 100 шагов"],
+    ["backward","t.backward(100)","назад на 100 шагов"],
+    ["right","t.right(90)","повернуть направо на 90°"],
+    ["left","t.left(90)","повернуть налево на 90°"],
+    ["goto","t.goto(x, y)","переместиться в точку"],
+  ]},
+  {h:"Перо и цвет", items:[
+    ["color","t.color(\"red\")","цвет линии (названием)"],
+    ["color3","t.color(255, 0, 0)","цвет числами R, G, B"],
+    ["penup","t.penup()","поднять перо — не рисовать"],
+    ["pendown","t.pendown()","опустить перо — рисовать"],
+    ["pensize","t.pensize(3)","толщина линии"],
+  ]},
+  {h:"Черепашка и окно", items:[
+    ["speed","t.speed(0)","скорость: 1…10, 0 — быстрее всего"],
+    ["hideturtle","t.hideturtle()","спрятать черепашку"],
+    ["colormode","turtle.colormode(255)","включить цвета числами 0–255"],
+    ["bgcolor","turtle.bgcolor(\"black\")","цвет фона"],
+    ["done","turtle.done()","не закрывать окно (в конце)"],
+  ]},
+  {h:"Python", items:[
+    ["def","def имя(параметры):","создать свою функцию"],
+    ["for","for i in range(0, 4):","повторить 4 раза"],
+    ["len","len(список)","сколько элементов в списке"],
+    ["mod","i % 3","остаток от деления"],
+    ["abs","abs(-5)","модуль числа → 5"],
+    ["print","print(...)","вывести в консоль"],
+  ]},
+];
+const DETECT = {
+  forward:/\.forward\(/, backward:/\.backward\(/, right:/\.right\(/, left:/\.left\(/, goto:/\.goto\(/,
+  color:/\.color\(\s*["a-z]/, color3:/\.color\(\s*[0-9i(a]/, penup:/\.penup\(/, pendown:/\.pendown\(/, pensize:/\.pensize\(/,
+  speed:/\.speed\(/, hideturtle:/\.hideturtle\(/, colormode:/colormode\(/, bgcolor:/bgcolor\(/, done:/turtle\.done\(/,
+  def:/^\s*def /m, for:/^\s*for /m, len:/len\(/, mod:/ % /, abs:/abs\(/, print:/print\(/,
+};
+const refEl = document.getElementById('ref');
+refEl.innerHTML = REF.map(g=>`<div class="side-h">${g.h}</div>`+g.items.map(([id,c,d])=>
+  `<div class="fn" data-id="${id}"><code>${esc(c)}</code><small>${d}</small></div>`).join('')).join('');
+
+/* ================= Python highlighter ================= */
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+const KW = new Set(['def','for','in','import','from','return','if','else','elif','while','and','or','not','True','False','None']);
+const BI = new Set(['range','len','print','abs','int','input','str']);
+function hl(line){
+  let out='', i=0, prevWord='';
+  while(i<line.length){
+    const ch=line[i], rest=line.slice(i);
+    let m;
+    if(ch==='#'){out+=`<span class="c">${esc(rest)}</span>`;break}
+    if(ch==='"'||ch==="'"){let j=i+1;while(j<line.length&&line[j]!==ch)j++;out+=`<span class="s">${esc(line.slice(i,j+1))}</span>`;i=j+1;continue}
+    if((m=rest.match(/^\d+(\.\d+)?/))){out+=`<span class="n">${m[0]}</span>`;i+=m[0].length;continue}
+    if((m=rest.match(/^[A-Za-z_]\w*/))){
+      const w=m[0];
+      const isCall = line[i+w.length]==='(';
+      const afterDot = line[i-1]==='.';
+      let cls='';
+      if(KW.has(w))cls='k';
+      else if(prevWord==='def')cls='f';
+      else if(BI.has(w)&&isCall)cls='b';
+      else if(afterDot&&isCall)cls='m';
+      out+=cls?`<span class="${cls}">${w}</span>`:w;
+      prevWord=w;i+=w.length;continue}
+    out+=esc(ch);if(ch!==' ')prevWord='';i++;
+  }
+  return out;
+}
+/* code spec: lines starting with "~" are dim context, "!" highlighted (new) */
+function codeBlock(src, title){
+  const lines=src.replace(/^\n|\n$/g,'').split('\n');
+  const plain=[];
+  const html=lines.map((raw,n)=>{
+    let cls='';
+    if(raw.startsWith('~')){cls='dim';raw=raw.slice(1)}
+    else if(raw.startsWith('!')){cls='hl';raw=raw.slice(1)}
+    plain.push(raw);
+    return `<span class="ln ${cls}" data-n="${n+1}">${hl(raw)||' '}</span>`;
+  }).join('');
+  const id='cb'+Math.random().toString(36).slice(2,8);
+  CODES[id]=plain.join('\n');
+  return `<div class="code"><div class="code-top"><span>${title||'main.py'}</span><button class="copy" data-copy="${id}">Скопировать</button></div><pre>${html}</pre></div>`;
+}
+const CODES={};
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-copy]'); if(!b)return;
+  const txt=CODES[b.dataset.copy];
+  const done=()=>{b.textContent='Скопировано ✓';b.classList.add('ok');setTimeout(()=>{b.textContent='Скопировать';b.classList.remove('ok')},1400)};
+  try{navigator.clipboard.writeText(txt).then(done,()=>fallbackCopy(txt,done))}catch(_){fallbackCopy(txt,done)}
+});
+function fallbackCopy(t,done){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done()}catch(_){}ta.remove()}
+
+/* ================= Turtle simulator (JS mirror of Python turtle) ================= */
+const NAMED = n=>n; // CSS understands the same colour names
+function record(fn){
+  const ops=[]; let x=0,y=0,h=0,pen=true,col='#000',vis=true;
+  const T={
+    forward(d){const nx=x+d*Math.cos(h*Math.PI/180),ny=y+d*Math.sin(h*Math.PI/180);ops.push({t:'m',x0:x,y0:y,x1:nx,y1:ny,pen,col,len:Math.abs(d)});x=nx;y=ny},
+    backward(d){T.forward(-d)},
+    left(a){ops.push({t:'r',h0:h,h1:h+a,len:Math.abs(a)/3});h+=a},
+    right(a){T.left(-a)},
+    color(r,g,b){col = g===undefined ? NAMED(r) : `rgb(${r},${g},${b})`},
+    penup(){pen=false},pendown(){pen=true},
+    goto(nx,ny){ops.push({t:'m',x0:x,y0:y,x1:nx,y1:ny,pen,col,len:Math.hypot(nx-x,ny-y)});x=nx;y=ny},
+    hideturtle(){ops.push({t:'v',v:false,len:0})},
+    speed(){},
+  };
+  fn&&fn(T);
+  return ops;
+}
+const cv={el:null,ctx:null,off:null,octx:null,raf:0};
+const WORLD=330;
+function setupCanvas(el){
+  const r=el.getBoundingClientRect(), dpr=window.devicePixelRatio||1, S=Math.max(300,Math.round(r.width*dpr));
+  el.width=el.height=S;
+  cv.el=el;cv.ctx=el.getContext('2d');
+  cv.off=document.createElement('canvas');cv.off.width=cv.off.height=S;cv.octx=cv.off.getContext('2d');
+  cv.S=S;cv.k=S/(2*WORLD);
+}
+const px=x=>cv.S/2+x*cv.k, py=y=>cv.S/2-y*cv.k;
+function seg(ctx,x0,y0,x1,y1,col){ctx.strokeStyle=col;ctx.lineWidth=Math.max(1.5,cv.k*1.6);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(px(x0),py(y0));ctx.lineTo(px(x1),py(y1));ctx.stroke()}
+function sprite(ctx,x,y,h){
+  const s=cv.k*1.7;ctx.save();ctx.translate(px(x),py(y));ctx.rotate(-h*Math.PI/180);
+  ctx.fillStyle='#2f8a5b';ctx.strokeStyle='#14432b';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(9*s,0);ctx.lineTo(-6*s,6*s);ctx.lineTo(-2*s,0);ctx.lineTo(-6*s,-6*s);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+}
+function animate(ops,pace,instant){
+  cancelAnimationFrame(cv.raf);
+  const {ctx,octx,S}=cv; octx.clearRect(0,0,S,S);
+  let i=0, part=0, x=0,y=0,h=0,vis=true;
+  function frame(){
+    let budget=instant?1e12:pace;
+    while(i<ops.length&&budget>0){
+      const o=ops[i], need=o.len-part;
+      if(budget>=need){
+        if(o.t==='m'){ if(o.pen)seg(octx,o.x0+(o.x1-o.x0)*(part/(o.len||1)),o.y0+(o.y1-o.y0)*(part/(o.len||1)),o.x1,o.y1,o.col); x=o.x1;y=o.y1 }
+        else if(o.t==='r'){h=o.h1} else if(o.t==='v'){vis=o.v}
+        budget-=need;part=0;i++;
+      } else {
+        const f0=part/o.len, f1=(part+budget)/o.len;
+        if(o.t==='m'){ if(o.pen)seg(octx,o.x0+(o.x1-o.x0)*f0,o.y0+(o.y1-o.y0)*f0,o.x0+(o.x1-o.x0)*f1,o.y0+(o.y1-o.y0)*f1,o.col); x=o.x0+(o.x1-o.x0)*f1;y=o.y0+(o.y1-o.y0)*f1 }
+        else if(o.t==='r'){h=o.h0+(o.h1-o.h0)*f1}
+        part+=budget;budget=0;
+      }
+    }
+    ctx.clearRect(0,0,S,S);ctx.drawImage(cv.off,0,0);
+    if(vis)sprite(ctx,x,y,h);
+    if(i<ops.length)cv.raf=requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* ================= Python code pieces ================= */
+const HEAD = `~import turtle
+~
+~# Создаём объект черепашки
+~t = turtle.Turtle()
+~`;
+const TAIL = `~
+~turtle.done()  # Запускаем цикл обработки событий`;
+const wrap = body => HEAD+'\n'+body.replace(/^\n|\n$/g,'')+'\n'+TAIL;
+
+const COLORS_PY = `colors = ["lavender", "thistle", "plum",
+          "violet", "orchid", "fuchsia",
+          "magenta", "mediumOrchid", "mediumPurple",
+          "blueViolet", "darkViolet", "darkOrchid",
+          "darkMagenta", "purple", "indigo",
+          "slateBlue", "darkSlateBlue", "mediumSlateBlue"]`;
+const COLORS = ["lavender","thistle","plum","violet","orchid","fuchsia","magenta","mediumOrchid","mediumPurple","blueViolet","darkViolet","darkOrchid","darkMagenta","purple","indigo","slateBlue","darkSlateBlue","mediumSlateBlue"];
+
+/* JS twins of the Python functions */
+const J = {
+  square:(T,s)=>{for(let k=0;k<4;k++){T.forward(s);if(k<3)T.right(90)}},
+  tri:(T,s)=>{for(let k=0;k<3;k++){T.forward(s);T.left(120)}},
+  circ:(T,s)=>{for(let k=0;k<20;k++){T.forward(s);T.left(360/20)}},
+  poly:(T,s,e)=>{for(let k=0;k<e;k++){T.forward(s);T.left(360/e)}},
+  round:(T,s)=>{for(let k=0;k<360;k++){T.forward(s);T.backward(s);T.right(1)}},
+  pattern:(T,shape)=>{for(let k=0;k<20;k++){shape();T.forward(360/20);T.left(360/20)}T.hideturtle()},
+};
+
+/* ================= Steps ================= */
+const STEPS = [
+{ cover:true, kicker:"Python · Урок 8", title:"Функции<br>и черепашка",
+  html:`<p style="font-size:1.25em;color:#4a504c;margin-top:0">Сегодня научимся писать <b>свои функции</b> и рисовать ими узоры.</p>
+  <ol class="plan">
+    <li>Что такое функция и как её написать</li>
+    <li>Функция <code>drawSquare</code> — квадрат</li>
+    <li>Параметры: квадрат любого размера</li>
+    <li>Узоры из квадратов, треугольников и кругов</li>
+    <li>Разноцветный и градиентный круг</li>
+    <li>Придумываем свой узор</li>
+  </ol>
+  <div class="note">Открываем <b>PyCharm</b> → создаём файл <code>lesson8.py</code>. Код пишем в одном файле весь урок.</div>`},
+
+{ kicker:"Шаг 0 · заготовка", title:"Начинаем с заготовки",
+  html:`<p>В каждой программе с черепашкой есть три обязательные строки. Наберите их в PyCharm:</p>
+  <ul><li><code>import turtle</code> — подключаем черепашку</li>
+  <li><code>t = turtle.Turtle()</code> — создаём черепашку по имени <b>t</b></li>
+  <li><code>turtle.done()</code> — чтобы окно не закрылось сразу</li></ul>
+  <p>Весь новый код пишем <b>между</b> <code>t = turtle.Turtle()</code> и <code>turtle.done()</code>.</p>`,
+  code:`import turtle
+
+# Создаём объект черепашки
+t = turtle.Turtle()
+
+!# здесь будет наш код
+
+turtle.done()  # Запускаем цикл обработки событий`,
+  task:`Запустите программу (зелёный треугольник ▶ в PyCharm). Должно открыться окно с черепашкой-стрелкой.`,
+  draw:T=>{}, pace:5 },
+
+{ kicker:"Шаг 1 · теория", title:"Что такое функция?", wide:false,
+  html:`<p><b>Функция</b> — кусочек кода с именем. Он работает только тогда, когда мы его <b>вызываем</b>.</p>
+  <p>Мы уже пользовались готовыми функциями: <code>print()</code>, <code>len()</code>, <code>int()</code>, <code>input()</code>. Теперь напишем свою!</p>
+  <div class="anat">
+    <div><small>ключевое слово</small><span class="a1">def</span></div>
+    <div><small>имя функции</small><span class="a2">sumAB</span></div>
+    <div><small>параметры</small><span class="a3">(a, b)</span></div>
+    <div><small>двоеточие</small><span class="a4">:</span></div>
+  </div>
+  <ul>
+    <li>тело функции пишется <b>с отступом</b> (клавиша Tab), как в цикле</li>
+    <li>функция может быть и без параметров: <code>def hello():</code></li>
+    <li>чтобы функция сработала — <b>вызываем</b> её: имя + значения в скобках</li>
+  </ul>`,
+  code:`def sumAB(a, b):
+    print(a + b)
+
+!sumAB(10, 40)`, codeTitle:"пример.py",
+  console:`<span class="p">&gt;&gt;&gt;</span> sumAB(10, 40)<br>50<br><br><span class="p"># a = 10, b = 40 → print(10 + 40)</span>`,
+  task:`Если убрать последнюю строку — ничего не выведется. Функцию нужно <b>вызвать</b>!`,
+  mine:["sumAB(a, b)"] },
+
+{ kicker:"Шаг 2 · вспоминаем", title:"Рисуем квадрат без функции",
+  html:`<p>Вспомним прошлый урок: черепашка идёт вперёд и поворачивает на 90°. Попробуйте написать сами, а потом сверьтесь.</p>`,
+  code:wrap(`!t.forward(100)
+!t.right(90)
+!t.forward(100)
+!t.right(90)
+!t.forward(100)
+!t.right(90)
+!t.forward(100)`),
+  draw:T=>J.square(T,100), pace:5 },
+
+{ kicker:"Шаг 3 · первая функция", title:"Функция drawSquare()",
+  html:`<p>Превратим код квадрата в функцию. Пишем <code>def drawSquare():</code>, а команды — <b>с отступом</b> внутри.</p>
+  <p>Ниже — <b>вызов</b> функции. Без него квадрата не будет!</p>`,
+  code:wrap(`!def drawSquare():
+    t.forward(100)
+    t.right(90)
+    t.forward(100)
+    t.right(90)
+    t.forward(100)
+    t.right(90)
+    t.forward(100)
+
+!drawSquare()`),
+  task:`Закомментируйте вызов (<code>#</code> в начале строки) и запустите. Что изменилось?`,
+  draw:T=>J.square(T,100), pace:5, mine:["drawSquare()"] },
+
+{ kicker:"Шаг 4 · параметр", title:"Квадрат любого размера",
+  html:`<p>Сейчас квадрат всегда 100. Добавим <b>параметр</b> <code>size</code> и подставим его везде, где черепашка идёт вперёд.</p>
+  <p>Теперь размер передаём при вызове: <code>drawSquare(200)</code>.</p>`,
+  code:wrap(`def drawSquare(!size!):
+    t.forward(size)
+    t.right(90)
+    t.forward(size)
+    t.right(90)
+    t.forward(size)
+    t.right(90)
+    t.forward(size)
+
+!drawSquare(200)`),
+  task:`Вызовите функцию несколько раз с разными числами: <code>drawSquare(50)</code>, <code>drawSquare(150)</code>…`,
+  variants:[
+    {label:"drawSquare(200)", draw:T=>J.square(T,200)},
+    {label:"50, 100, 150, 200", draw:T=>{[50,100,150,200].forEach(s=>J.square(T,s))}},
+  ], pace:7, mine:["drawSquare(size)"] },
+
+{ kicker:"Шаг 5 · узор", title:"Узор из квадратов",
+  html:`<p>Зачем функции? Код становится <b>короче и понятнее</b> — по имени <code>drawSquare</code> сразу ясно, что она делает.</p>
+  <p>Вызовем её в цикле 20 раз, каждый раз немного сдвигая и поворачивая черепашку:</p>`,
+  code:wrap(`~def drawSquare(size):
+~    ...  # функция из прошлого шага
+~
+!t.speed(0)
+!for i in range(0, 20):
+!    drawSquare(50)
+!    t.forward(360 / 20)
+!    t.left(360 / 20)
+!t.hideturtle()`),
+  note:`<code>t.speed(0)</code> — самая быстрая скорость.`,
+  draw:T=>J.pattern(T,()=>J.square(T,50)), pace:40 },
+
+{ kicker:"Шаг 6 · новые фигуры", title:"Функции для других фигур",
+  html:`<p>На прошлом уроке мы рисовали треугольник, круг и многоугольник. Сделаем из каждого функцию!</p>
+  <p>У <code>drawPolygon</code> <b>два параметра</b>: длина стороны и количество углов.</p>`,
+  code:wrap(`def drawTriangle(size):
+    for i in range(0, 3):
+        t.forward(size)
+        t.left(120)
+
+def drawCircle(size):
+    for i in range(0, 20):
+        t.forward(size)
+        t.left(360 / 20)
+
+def drawPolygon(size, edges):
+    for i in range(0, edges):
+        t.forward(size)
+        t.left(360 / edges)
+
+!drawTriangle(100)
+!drawCircle(20)
+!drawPolygon(60, 6)`),
+  task:`Нарисуйте пятиугольник и восьмиугольник с помощью <code>drawPolygon</code>.`,
+  variants:[
+    {label:"все три", draw:T=>{J.tri(T,100);J.circ(T,20);J.poly(T,60,6)}},
+    {label:"drawPolygon(80, 5)", draw:T=>J.poly(T,80,5)},
+    {label:"drawPolygon(50, 8)", draw:T=>J.poly(T,50,8)},
+  ], pace:8, mine:["drawTriangle(size)","drawCircle(size)","drawPolygon(size, edges)"] },
+
+{ kicker:"Шаг 7 · новые узоры", title:"Меняем фигуру в узоре",
+  html:`<p>Возьмите код узора из шага 5 и замените <code>drawSquare(50)</code> на любую новую функцию. Получатся совсем другие узоры!</p>`,
+  variants:[
+    {label:"drawTriangle(100)", call:"drawTriangle(100)", draw:T=>J.pattern(T,()=>J.tri(T,100))},
+    {label:"drawCircle(40)", call:"drawCircle(40)", draw:T=>J.pattern(T,()=>J.circ(T,40))},
+    {label:"drawPolygon(60, 5)", call:"drawPolygon(60, 5)", draw:T=>J.pattern(T,()=>J.poly(T,60,5))},
+  ],
+  codeFn:v=>wrap(`~# функции drawTriangle, drawCircle, drawPolygon — выше
+~
+t.speed(0)
+for i in range(0, 20):
+!    ${v.call}
+    t.forward(360 / 20)
+    t.left(360 / 20)
+t.hideturtle()`),
+  task:`Нажимайте кнопки над рисунком — код слева тоже меняется. Попробуйте свои числа!`,
+  pace:60 },
+
+{ kicker:"Шаг 8 · закрашенный круг", title:"Функция drawRound()",
+  html:`<p>Как нарисовать <b>закрашенный</b> круг? Черепашка 360 раз идёт вперёд, возвращается назад и поворачивает на 1°. Получается круг из «лучиков».</p>`,
+  code:wrap(`!def drawRound(size):
+    t.speed(0)
+    for i in range(0, 360):
+        t.forward(size)
+        t.backward(size)
+        t.right(1)
+
+!drawRound(100)`),
+  note:`Рисует медленно? Поставьте <code>turtle.tracer(0)</code> сразу после <code>t = turtle.Turtle()</code>, а <code>turtle.update()</code> — перед <code>turtle.done()</code>. Тогда картинка появится сразу.`,
+  draw:T=>J.round(T,100), pace:300, mine:["drawRound(size)"] },
+
+{ kicker:"Шаг 9 · цвета", title:"Разноцветный круг",
+  html:`<p>Создадим <b>список цветов</b> и будем на каждом шаге брать следующий цвет:</p>
+  <p><code>t.color(colors[i % len(colors)])</code></p>
+  <p><code>%</code> — остаток от деления. Он не даёт <code>i</code> выйти за пределы списка — цвета идут по кругу. Например, если цветов 3:</p>
+  <div class="mod">
+   <span class="hd">i</span><span class="hd">i % 3</span><span class="hd">i</span><span class="hd">i % 3</span>
+   <span>0</span><span>0 <i class="sw" style="background:plum"></i></span><span>3</span><span>0 <i class="sw" style="background:plum"></i></span>
+   <span>1</span><span>1 <i class="sw" style="background:orchid"></i></span><span>4</span><span>1 <i class="sw" style="background:orchid"></i></span>
+   <span>2</span><span>2 <i class="sw" style="background:purple"></i></span><span>5</span><span>2 <i class="sw" style="background:purple"></i></span>
+  </div>`,
+  code:wrap(`!${COLORS_PY}
+
+def drawColoredRound(size, colors):
+    t.speed(0)
+    for i in range(0, 360):
+!        t.color(colors[i % len(colors)])
+        t.forward(size)
+        t.backward(size)
+        t.right(1)
+
+!drawColoredRound(150, colors)`),
+  task:`Впишите в список свои цвета: <code>"red"</code>, <code>"orange"</code>, <code>"gold"</code>, <code>"skyblue"</code>…`,
+  draw:T=>{for(let i=0;i<360;i++){T.color(COLORS[i%COLORS.length]);T.forward(150);T.backward(150);T.right(1)}}, pace:400,
+  mine:["drawColoredRound(size, colors)"] },
+
+{ kicker:"Шаг 10 · градиент", title:"Градиентный круг",
+  html:`<p><b>Градиент</b> — цвета, которые плавно меняются. Цвет можно задать тремя числами от 0 до 255: <b style="color:#c0392b">R</b>ed, <b style="color:#2f8a5b">G</b>reen, <b style="color:#2b5fc0">B</b>lue.</p>
+  <div class="mixer" id="mixer">
+    <label>Красный <input type="range" min="0" max="255" value="10" data-c="0"><span>10</span></label>
+    <label>Зелёный <input type="range" min="0" max="255" value="255" data-c="1"><span>255</span></label>
+    <label>Синий <input type="range" min="0" max="255" value="0" data-c="2"><span>0</span></label>
+    <div class="mix-out"><div class="mix-sw" id="mixSw"></div><code id="mixCode"></code></div>
+  </div>
+  <p>Чтобы так работало, в начале пишем <code>turtle.colormode(255)</code>.</p>`,
+  variants:[
+    {label:"i % 255", draw:T=>{for(let i=0;i<255;i++){T.color(i%255,i%255,200);T.forward(150);T.backward(150);T.right(360/255)}},
+     code:wrap(`!turtle.colormode(255)
+
+def drawGradientRound(size):
+    t.speed(0)
+    for i in range(0, 255):
+!        t.color(i % 255, i % 255, 200)
+        t.forward(size)
+        t.backward(size)
+        t.right(360 / 255)
+
+drawGradientRound(150)`)},
+    {label:"abs(128 - i)", draw:T=>{for(let i=0;i<255;i++){T.color(Math.abs(128-i),Math.abs(128-i),200);T.forward(150);T.backward(150);T.right(360/255)}},
+     code:wrap(`!turtle.colormode(255)
+
+def drawGradientRound(size):
+    t.speed(0)
+    for i in range(0, 255):
+        # abs(128 - i) идёт от 128 до 0 и обратно до 127
+!        t.color(abs(128 - i), abs(128 - i), 200)
+        t.forward(size)
+        t.backward(size)
+        t.right(360 / 255)
+
+drawGradientRound(150)`)},
+  ],
+  task:`Поменяйте 200 на другое число или переставьте числа местами — какие получатся цвета?`,
+  pace:300, mine:["drawGradientRound(size)"] },
+
+{ kicker:"Шаг 11 · творчество", title:"Придумайте свой узор",
+  html:`<p>Соединяем всё, что написали: функции фигур + список цветов + цикл.</p>
+  <p>Вот пример. Меняйте числа, фигуры и цвета — у каждого получится свой узор!</p>`,
+  code:wrap(`~# функции drawPolygon и список colors — выше
+~
+t.speed(0)
+for i in range(0, 36):
+!    t.color(colors[i % len(colors)])
+!    drawPolygon(80, 6)
+    t.left(10)
+t.hideturtle()`),
+  task:`Идеи: <code>drawCircle(15)</code> вместо шестиугольника · поворот <code>t.left(20)</code> · фон <code>turtle.bgcolor("black")</code>.`,
+  draw:T=>{for(let i=0;i<36;i++){T.color(COLORS[i%COLORS.length]);J.poly(T,80,6);T.left(10)}T.hideturtle()}, pace:60 },
+
+{ kicker:"Шаг 12 · если осталось время", title:"Функции без черепашки",
+  html:`<p>Функции нужны не только для рисования. Напишите функции, которые считают <b>периметр</b> и <b>площадь</b> прямоугольника со сторонами <code>a</code> и <code>b</code>.</p>`,
+  code:`# Функции нахождения периметра и площади прямоугольника
+def rectangleP(a, b):
+    print(2 * a + 2 * b)
+
+def rectangleS(a, b):
+    print(a * b)
+
+!rectangleS(10, 20)
+!rectangleP(10, 20)`, codeTitle:"задача.py",
+  console:`200<br>60`,
+  task:`Напишите функцию <code>squareS(a)</code> — площадь квадрата.`,
+  mine:["rectangleP(a, b)","rectangleS(a, b)"] },
+
+{ cover:true, kicker:"Итоги", title:"Что мы узнали",
+  html:`<ol class="plan">
+    <li>Функция создаётся словом <code>def</code>: <code>def имя(параметры):</code></li>
+    <li>Тело функции пишется с отступом</li>
+    <li>Функция работает, только когда её <b>вызвали</b>: <code>drawSquare(200)</code></li>
+    <li>Параметры делают функцию гибкой — один код, разные размеры и цвета</li>
+    <li>Из функций легко собирать сложные узоры</li>
+  </ol>
+  <div class="task"><b>Дома:</b> нарисуйте узор из своей функции — например, звезды или домика.</div>`},
+];
+
+/* ================= Render ================= */
+let cur=0, variant=0;
+const stage=document.getElementById('stage'), dots=document.getElementById('dots');
+dots.innerHTML=STEPS.map((s,i)=>`<button class="dot" data-i="${i}" title="${s.title.replace(/<br>/g,' ')}">${i===0?'▶':i===STEPS.length-1?'✓':i-1}</button>`).join('');
+dots.onclick=e=>{const b=e.target.closest('.dot');if(b)go(+b.dataset.i)};
+
+function stepCode(s){
+  if(s.codeFn)return s.codeFn(s.variants[variant]);
+  if(s.variants&&s.variants[variant].code)return s.variants[variant].code;
+  return s.code;
+}
+function render(){
+  const s=STEPS[cur];
+  for(const k in CODES)delete CODES[k];
+  let src=stepCode(s)||'';
+  /* inline "!size!" marker: strip */
+  src=src.replace(/!size!/g,'size');
+  let left=`<div class="text${s.cover?' cover':''}"><div class="kicker">${s.kicker}</div><h1>${s.title}</h1>${s.html||''}`;
+  if(src)left+=codeBlock(src,s.codeTitle);
+  if(s.note)left+=`<div class="note">💡 ${s.note}</div>`;
+  if(s.task)left+=`<div class="task"><b>Задание:</b> ${s.task}</div>`;
+  left+='</div>';
+
+  let right='';
+  const hasDraw=s.draw||s.variants;
+  if(s.console){
+    right=`<div class="right"><div class="canvas-card"><div class="canvas-title">Что выведет программа</div><div class="console">${s.console}</div></div></div>`;
+  } else if(hasDraw){
+    const vb=s.variants?`<div class="variants">${s.variants.map((v,i)=>`<button class="btn ${i===variant?'on':''}" data-v="${i}">${v.label}</button>`).join('')}</div>`:'';
+    right=`<div class="right"><div class="canvas-card"><div class="canvas-title"><span>Что должно получиться</span></div>${vb}<canvas id="cv"></canvas>
+      <div class="canvas-btns"><button class="btn primary" id="replay">▶ Нарисовать заново</button><button class="btn" id="instant">Сразу результат</button></div></div></div>`;
+  }
+  stage.className='stage'+(right?'':' full');
+  stage.innerHTML=left+right;
+  stage.scrollTop=0;
+
+  if(hasDraw&&!s.console){
+    setupCanvas(document.getElementById('cv'));
+    const run=inst=>animate(record(s.variants?s.variants[variant].draw:s.draw),s.pace||10,inst);
+    run(false);
+    document.getElementById('replay').onclick=()=>run(false);
+    document.getElementById('instant').onclick=()=>run(true);
+    stage.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{variant=+b.dataset.v;render()});
+  }
+  if(document.getElementById('mixer'))initMixer();
+
+  /* sidebar: used commands */
+  document.querySelectorAll('#ref .fn').forEach(el=>el.classList.toggle('used',!!src&&DETECT[el.dataset.id].test(src)));
+  /* sidebar: our functions */
+  const mine=[];STEPS.slice(0,cur+1).forEach((st,i)=>(st.mine||[]).forEach(m=>{
+    const base=m.split('(')[0];const prev=mine.findIndex(x=>x.n.split('(')[0]===base);
+    if(prev>=0)mine.splice(prev,1);mine.push({n:m,isNew:i===cur})}));
+  document.getElementById('mine').innerHTML=mine.length?mine.map(m=>`<div class="fn ${m.isNew?'new used':''}"><code>${m.n}</code></div>`).join(''):'<div class="mine-empty">Появятся, когда мы их напишем</div>';
+
+  dots.querySelectorAll('.dot').forEach((d,i)=>{d.classList.toggle('cur',i===cur);d.classList.toggle('done',i<cur)});
+  document.getElementById('prev').disabled=cur===0;
+  document.getElementById('next').textContent=cur===STEPS.length-1?'Конец ✓':'Дальше →';
+  try{history.replaceState(null,'','#step-'+cur)}catch(_){location.hash='step-'+cur}
+}
+function go(i){i=Math.max(0,Math.min(STEPS.length-1,i));if(i!==cur){cur=i;variant=0;render()}}
+document.getElementById('prev').onclick=()=>go(cur-1);
+document.getElementById('next').onclick=()=>go(cur+1);
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(cur+1)}
+  if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur-1)}
+});
+
+function initMixer(){
+  const ins=[...document.querySelectorAll('#mixer input')];
+  const upd=()=>{const v=ins.map(i=>+i.value);ins.forEach((i,k)=>i.nextElementSibling.textContent=v[k]);
+    document.getElementById('mixSw').style.background=`rgb(${v})`;document.getElementById('mixCode').textContent=`t.color(${v.join(', ')})`};
+  ins.forEach(i=>i.oninput=upd);upd();
+}
+
+/* tools */
+let fs=18;try{fs=+localStorage.getItem('l8fs')||18}catch(_){}
+const applyFs=()=>{document.documentElement.style.setProperty('--fs',fs+'px');try{localStorage.setItem('l8fs',fs)}catch(_){}};
+document.getElementById('fsUp').onclick=()=>{fs=Math.min(30,fs+2);applyFs();render()};
+document.getElementById('fsDown').onclick=()=>{fs=Math.max(12,fs-2);applyFs();render()};
+document.getElementById('focusBtn').onclick=()=>document.body.classList.toggle('focus');
+document.getElementById('fullBtn').onclick=()=>{try{const p=document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();p&&p.catch&&p.catch(()=>{})}catch(_){}};
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(render,200)});
+
+const m=(location.hash||'').match(/step-(\d+)/);if(m)cur=Math.min(STEPS.length-1,+m[1]);
+applyFs();render();
+</script>
+</body>
+</html>
