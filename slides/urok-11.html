@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Урок 11: ИИ-ассистент — презентация</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/slides.css">
+</head>
+<body>
+<main class="deck" aria-label="Презентация: урок 11">
+<section class="slide title"><div class="k">Python · Урок 11</div><h1>ИИ-ассистент программиста</h1><p>Учимся просить нейросеть о помощи и проверять её ответы</p><div class="foot">KIBERone · Программирование на Python</div></section>
+<section class="slide "><h2>План урока</h2><ul><li>Что такое ИИ-ассистент</li><li>Пишем запрос и получаем код</li><li>Когда ИИ действительно полезен</li><li>Решаем задачи сами, потом сравниваем с ИИ</li><li>Где ИИ ошибается</li></ul></section>
+<section class="slide "><h2>Друг-программист рядом</h2><p>Представь друга, который сидит рядом и в любой момент подсказывает код, предлагает варианты и находит ошибки.</p><p><b>ИИ-ассистент</b> — программа, обученная на миллионах строк кода. Она понимает, что ты хочешь, и предлагает решения.</p><div class="note">Многие среды разработки уже содержат ИИ внутри. Ещё есть отдельные сервисы: YandexGPT, GigaChat, DeepSeek и другие.</div></section>
+<section class="slide "><h2><small>Промпт</small>Пишем запрос</h2><div class="cols"><div class="note" style="margin:0;font-size:24px">«Напиши программу на Python: два игрока бросают кости по три раза каждый. Значения двух костей складываются и добавляются к очкам игрока. После трёх бросков суммы сравниваются и определяется победитель».</div><div><ul><li>Сравни ответ с кодом с прошлого урока.</li><li>Сравни ответы у соседей — они разные!</li><li>Любую программу можно написать по-разному.</li></ul></div></div></section>
+<section class="slide "><h2>Когда ИИ полезен</h2><div class="cards"><div class="cardx"><h3>Новая тема</h3><p>объяснить 2–3 функции библиотеки простыми словами</p></div><div class="cardx"><h3>Быстрый старт</h3><p>сделать каркас программы: функции и структуру</p></div><div class="cardx"><h3>Понять ошибку</h3><p>вставить текст ошибки и спросить причину</p></div><div class="cardx"><h3>Рефакторинг</h3><p>«вынеси повтор в функцию», «подбери понятные имена»</p></div><div class="cardx"><h3>Тестовые данные</h3><p>списки чисел и примеры для проверки</p></div><div class="cardx"><h3>Перенос</h3><p>переписать пример с turtle под ColabTurtle и обратно</p></div></div></section>
+<section class="slide "><h2>Правило урока</h2><div class="cols"><div class="big">1 → 2</div><div><p><b>Сначала</b> решаем задачу сами.</p><p><b>Потом</b> просим ИИ решить её же.</p><p><b>Сравниваем</b>: что лучше, что понятнее, где ошибки?</p></div></div></section>
+<section class="slide "><h2>Задача 1: калькулятор</h2><div class="cols"><div><p>Функция принимает два числа и операцию и печатает результат. Ввод гарантированно верный.</p></div><div><pre class="code sm"><span class="k">def</span> <span class="f">calculator</span>(a, b, op):
+    <span class="k">if</span> op == <span class="s">"+"</span>:
+        <span class="f">print</span>(a + b)
+    <span class="k">elif</span> op == <span class="s">"-"</span>:
+        <span class="f">print</span>(a - b)
+    <span class="k">elif</span> op == <span class="s">"*"</span>:
+        <span class="f">print</span>(a * b)
+    <span class="k">elif</span> op == <span class="s">"/"</span>:
+        <span class="f">print</span>(a / b)
+
+<span class="f">calculator</span>(<span class="n">10</span>, <span class="n">4</span>, <span class="s">"*"</span>)</pre><div class="out">40</div></div></div></section>
+<section class="slide "><h2>Задача 2: сколько цифр в числе</h2><div class="cols"><div><p>Делим число нацело на 10, пока оно не станет нулём, и считаем шаги.</p></div><div><pre class="code sm"><span class="k">def</span> <span class="f">digitCounter</span>(n):
+    count = <span class="n">0</span>
+    <span class="k">while</span> n &gt; <span class="n">0</span>:
+        n = n // <span class="n">10</span>
+        count = count + <span class="n">1</span>
+    <span class="f">print</span>(count)
+
+<span class="f">digitCounter</span>(<span class="n">103</span>)
+<span class="f">digitCounter</span>(<span class="n">7</span>)</pre><div class="out">3
+1</div></div></div></section>
+<section class="slide "><h2>Задача 3: треугольник из звёздочек</h2><div class="cols"><div><p>Вспоминаем умножение строки на число.</p><pre class="code sm"><span class="k">def</span> <span class="f">buildTriangle</span>(height):
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="n">1</span>, height + <span class="n">1</span>):
+        <span class="f">print</span>(<span class="s">"*"</span> * i)
+
+<span class="f">buildTriangle</span>(<span class="n">4</span>)</pre></div><div><div class="out" style="font-size:30px">*
+**
+***
+****</div></div></div></section>
+<section class="slide "><h2>Задача 4: палиндром</h2><div class="cols"><div><p>Слово читается одинаково слева направо и справа налево. Сравниваем первый символ с последним, второй — с предпоследним… до середины.</p></div><div><pre class="code xs"><span class="k">def</span> <span class="f">isPalindrome</span>(text):
+    result = <span class="k">True</span>
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="f">len</span>(text) // <span class="n">2</span>):
+        <span class="k">if</span> text[i] != text[-<span class="n">1</span> - i]:
+            result = <span class="k">False</span>
+    <span class="k">if</span> result:
+        <span class="f">print</span>(<span class="s">"Yes"</span>)
+    <span class="k">else</span>:
+        <span class="f">print</span>(<span class="s">"No"</span>)
+
+<span class="f">isPalindrome</span>(<span class="s">"121"</span>)
+<span class="f">isPalindrome</span>(<span class="s">"шалаш"</span>)
+<span class="f">isPalindrome</span>(<span class="s">"кот"</span>)</pre><div class="out">Yes
+Yes
+No</div></div></div></section>
+<section class="slide "><h2>ИИ тоже ошибается</h2><div class="cols"><div><ul><li>На сложных задачах ИИ путается, особенно в длинных условиях.</li><li>Олимпиадные задачи (например, Timus 1731) — слабое место.</li><li>ИИ может уверенно написать неправильный код.</li></ul></div><div class="note warn" style="margin:0">Никогда не выдавай код нейросети за правильный, пока сам не разобрался и не проверил его.</div></div></section>
+<section class="slide "><h2>Как писать хороший запрос</h2><ul><li>Короткие и чёткие предложения — с ними ИИ справляется отлично.</li><li>Пиши, на каком языке и для какой среды (Python, turtle, PyCharm).</li><li>Дай пример: что вводится и что должно получиться.</li><li>Большую задачу разбей на маленькие шаги.</li><li>Попроси объяснить код — и проверь, понятно ли тебе.</li></ul></section>
+<section class="slide "><h2>Итоги урока</h2><ul><li>ИИ-ассистент ускоряет работу: каркас, объяснения, поиск ошибок.</li><li>Сначала думаем сами, потом сверяемся с ИИ.</li><li>Любой код от ИИ нужно проверять и понимать.</li></ul><div class="note ok">Попробуй дома: реши задачу сам, а потом попроси ИИ найти, что можно улучшить.</div></section>
+</main>
+<script src="../assets/slides.js"></script>
+</body>
+</html>

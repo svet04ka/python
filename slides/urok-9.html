@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Урок 9: Крестики-нолики — презентация</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/slides.css">
+</head>
+<body>
+<main class="deck" aria-label="Презентация: урок 9">
+<section class="slide title"><div class="k">Python · Урок 9</div><h1>Игра «Крестики-нолики»</h1><p>Собираем консольную игру из функций, циклов, условий и списков</p><div class="foot">KIBERone · Программирование на Python</div></section>
+<section class="slide "><h2>План урока</h2><ol><li>Разминка в тренажёре скоропечати</li><li>Продумываем игру: поле, ходы, победа</li><li>Пишем 5 функций</li><li>Собираем игру и тестируем</li><li>Практикум: две задачи на условия</li></ol></section>
+<section class="slide "><h2>Что должно быть в игре</h2><div class="cards"><div class="cardx"><h3>1. Поле</h3><p>В консоли рисуется поле 3 × 3 с номерами клеток.</p></div><div class="cardx"><h3>2. Ходы</h3><p>Игрок вводит номер клетки, ставит X или O, ход переходит к другому.</p></div><div class="cardx"><h3>3. Победа</h3><p>Три одинаковых знака в ряд — игра заканчивается.</p></div></div><div class="note" style="margin-top:30px">Если игрок ввёл не номер клетки, программа не должна ломаться — это тоже надо обработать.</div></section>
+<section class="slide "><h2>Пять функций игры</h2><div class="cards" style="--n:2"><div class="cardx"><h3>main()</h3><p>главный цикл игры, запускает остальные функции</p></div><div class="cardx"><h3>drawBoard()</h3><p>рисует поле с ходами</p></div><div class="cardx"><h3>takeInput()</h3><p>принимает ход и передаёт его другому игроку</p></div><div class="cardx"><h3>isValidInput()</h3><p>проверяет, что ввели число от 1 до 9</p></div><div class="cardx"><h3>checkWin()</h3><p>проверяет, не победил ли кто-то</p></div></div></section>
+<section class="slide "><h2>Игровое поле — список</h2><div class="cols"><div><pre class="code sm">board = <span class="f">list</span>(<span class="f">range</span>(<span class="n">1</span>, <span class="n">10</span>))
+<span class="f">print</span>(board)</pre><div class="out">[1, 2, 3, 4, 5, 6, 7, 8, 9]</div><p style="margin-top:18px">Список из 9 клеток. Клетка в строке <code>i</code> и столбце <code>j</code> — это <code>board[j + i * 3]</code>.</p></div><div><pre class="code" style="font-size:34px;line-height:1.7"> 0 | 1 | 2
+ 3 | 4 | 5
+ 6 | 7 | 8</pre><p style="margin-top:14px">Индексы клеток в списке. Номера для игрока — на 1 больше.</p></div></div></section>
+<section class="slide "><h2>drawBoard() — рисуем поле</h2><div class="cols wide"><div><pre class="code xs"><span class="k">def</span> <span class="f">drawBoard</span>(board):
+    <span class="f">print</span>(<span class="s">"-"</span> * <span class="n">13</span>)
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="n">3</span>):
+        <span class="f">print</span>(<span class="s">"|"</span>, board[<span class="n">0</span> + i * <span class="n">3</span>], <span class="s">"|"</span>, board[<span class="n">1</span> + i * <span class="n">3</span>], <span class="s">"|"</span>, board[<span class="n">2</span> + i * <span class="n">3</span>], <span class="s">"|"</span>)
+        <span class="f">print</span>(<span class="s">"-"</span> * <span class="n">13</span>)
+
+board = <span class="f">list</span>(<span class="f">range</span>(<span class="n">1</span>, <span class="n">10</span>))
+<span class="f">drawBoard</span>(board)</pre></div><div><div class="out">-------------
+| 1 | 2 | 3 |
+-------------
+| 4 | 5 | 6 |
+-------------
+| 7 | 8 | 9 |
+-------------</div></div></div></section>
+<section class="slide "><h2>try / except — защита от ошибок</h2><div class="cols"><div><pre class="code xs"><span class="k">def</span> <span class="f">isValidInput</span>(playerAnswer):
+    <span class="k">try</span>:
+        playerAnswer = <span class="f">int</span>(playerAnswer)
+    <span class="k">except</span> ValueError:
+        <span class="f">print</span>(<span class="s">"Некорректный ввод. Вы уверены, что ввели число?"</span>)
+        <span class="k">return</span> <span class="k">False</span>
+    <span class="k">if</span> playerAnswer &lt; <span class="n">1</span> <span class="k">or</span> playerAnswer &gt; <span class="n">9</span>:
+        <span class="f">print</span>(<span class="s">"Некорректный ввод. Введите число от 1 до 9"</span>)
+        <span class="k">return</span> <span class="k">False</span>
+    <span class="k">return</span> <span class="k">True</span>
+</pre></div><div><p><code>int("abc")</code> обычно ломает программу. Внутри <code>try</code> ошибка не останавливает игру — Python переходит в <code>except</code>.</p><p><code>return</code> возвращает значение туда, где функцию вызвали: <code>True</code> или <code>False</code>.</p></div></div></section>
+<section class="slide "><h2>takeInput() — ход игрока</h2><div class="cols wide"><div><pre class="code xs"><span class="k">def</span> <span class="f">takeInput</span>(playerToken):
+    valid = <span class="k">False</span>
+    <span class="k">while</span> <span class="k">not</span> valid:
+        playerAnswer = <span class="f">input</span>(<span class="s">"Куда поставим "</span> + playerToken + <span class="s">"? "</span>)
+        <span class="k">if</span> <span class="k">not</span> <span class="f">isValidInput</span>(playerAnswer):
+            <span class="k">continue</span>
+        playerAnswer = <span class="f">int</span>(playerAnswer)
+        <span class="k">if</span> <span class="f">str</span>(board[playerAnswer - <span class="n">1</span>]) <span class="k">not</span> <span class="k">in</span> <span class="s">"XO"</span>:
+            board[playerAnswer - <span class="n">1</span>] = playerToken
+            valid = <span class="k">True</span>
+        <span class="k">else</span>:
+            <span class="f">print</span>(<span class="s">"Эта клетка уже занята!"</span>)
+</pre></div><div><ul><li><code>valid = False</code> — пока ход не принят, крутимся в цикле;</li><li><code>continue</code> — сразу на новый круг;</li><li>клетка свободна, если в ней ещё не X и не O;</li><li>занята — просим другую.</li></ul></div></div></section>
+<section class="slide "><h2>checkWin() — кто победил?</h2><div class="cols wide"><div><pre class="code xs"><span class="k">def</span> <span class="f">checkWin</span>(board):
+    winCoord = ((<span class="n">0</span>, <span class="n">1</span>, <span class="n">2</span>), (<span class="n">3</span>, <span class="n">4</span>, <span class="n">5</span>), (<span class="n">6</span>, <span class="n">7</span>, <span class="n">8</span>), (<span class="n">0</span>, <span class="n">3</span>, <span class="n">6</span>),
+                (<span class="n">1</span>, <span class="n">4</span>, <span class="n">7</span>), (<span class="n">2</span>, <span class="n">5</span>, <span class="n">8</span>), (<span class="n">0</span>, <span class="n">4</span>, <span class="n">8</span>), (<span class="n">2</span>, <span class="n">4</span>, <span class="n">6</span>))
+    <span class="k">for</span> coord <span class="k">in</span> winCoord:
+        <span class="k">if</span> board[coord[<span class="n">0</span>]] == board[coord[<span class="n">1</span>]] == board[coord[<span class="n">2</span>]]:
+            <span class="k">return</span> board[coord[<span class="n">0</span>]]
+    <span class="k">return</span> <span class="k">False</span>
+</pre></div><div><p>8 выигрышных линий: 3 строки, 3 столбца, 2 диагонали.</p><p>Функция вернёт <code>"X"</code>, <code>"O"</code> или <code>False</code>.</p><div class="out">X
+False</div></div></div></section>
+<section class="slide "><h2>main() — главный цикл</h2><div class="cols wide"><div><pre class="code xs"><span class="k">def</span> <span class="f">main</span>(board):
+    counter = <span class="n">0</span>
+    win = <span class="k">False</span>
+    <span class="k">while</span> <span class="k">not</span> win:
+        <span class="f">drawBoard</span>(board)
+        <span class="k">if</span> counter % <span class="n">2</span> == <span class="n">0</span>:
+            <span class="f">takeInput</span>(<span class="s">"X"</span>)
+        <span class="k">else</span>:
+            <span class="f">takeInput</span>(<span class="s">"O"</span>)
+        counter += <span class="n">1</span>
+        <span class="k">if</span> counter &gt; <span class="n">4</span>:
+            tmp = <span class="f">checkWin</span>(board)
+            <span class="k">if</span> tmp:
+                <span class="f">print</span>(tmp, <span class="s">"выиграл!"</span>)
+                win = <span class="k">True</span>
+                <span class="k">break</span>
+        <span class="k">if</span> counter == <span class="n">9</span>:
+            <span class="f">print</span>(<span class="s">"Ничья!"</span>)
+            <span class="k">break</span>
+    <span class="f">drawBoard</span>(board)
+</pre></div><div><ul><li><code>counter</code> считает ходы: чётный — X, нечётный — O;</li><li>проверять победу есть смысл после 5-го хода;</li><li><code>if tmp:</code> — строка "X" или "O" считается истиной;</li><li>9 ходов без победы — ничья, <code>break</code>.</li></ul></div></div></section>
+<section class="slide "><h2>Запускаем и тестируем</h2><div class="cols"><div><p>Попробуй сломать игру:</p><ul><li>ввести букву вместо числа;</li><li>ввести 0 или 10;</li><li>поставить знак в занятую клетку;</li><li>собрать каждую из 8 победных линий;</li><li>сыграть вничью.</li></ul></div><div><div class="out" style="font-size:15px">Куда поставим X? 7
+-------------
+| O | 2 | O |
+-------------
+| 4 | X | 6 |
+-------------
+| X | 8 | X |
+-------------
+Куда поставим O? 2
+O выиграл!
+-------------
+| O | O | O |
+-------------
+| 4 | X | 6 |
+-------------
+| X | 8 | X |
+-------------</div></div></div></section>
+<section class="slide "><h2><small>Максимум из трёх</small>Практикум: задача 1</h2><div class="cols"><div><p>Вводятся три числа. Найди максимальное <b>без</b> <code>max()</code> и <code>sort()</code>. Если максимум не один — сообщи, что числа равны.</p><div class="note">Протестируй так, чтобы программа зашла в каждое условие.</div></div><div><pre class="code xs">a = <span class="f">int</span>(<span class="f">input</span>())
+b = <span class="f">int</span>(<span class="f">input</span>())
+c = <span class="f">int</span>(<span class="f">input</span>())
+<span class="k">if</span> a &gt; b <span class="k">and</span> a &gt; c:
+    <span class="f">print</span>(<span class="s">"Первое максимальное:"</span>, a)
+<span class="k">elif</span> b &gt; a <span class="k">and</span> b &gt; c:
+    <span class="f">print</span>(<span class="s">"Второе максимальное:"</span>, b)
+<span class="k">elif</span> c &gt; a <span class="k">and</span> c &gt; b:
+    <span class="f">print</span>(<span class="s">"Третье максимальное:"</span>, c)
+<span class="k">else</span>:
+    <span class="f">print</span>(<span class="s">"Числа равны"</span>)</pre><div class="out"><span class="in">4</span>
+<span class="in">9</span>
+<span class="in">2</span>
+Второе максимальное: 9</div></div></div></section>
+<section class="slide "><h2><small>Функция по частям</small>Практикум: задача 2</h2><div class="cols"><div><p>y = 10, если x ≥ 0<br>y = 2·x + 5, если x ≤ −10<br>y = x·x − 3, если −10 &lt; x &lt; 0</p><p>Для каждого диапазона — своё условие.</p></div><div><pre class="code sm">x = <span class="f">float</span>(<span class="f">input</span>())
+<span class="k">if</span> x &gt;= <span class="n">0</span>:
+    y = <span class="n">10</span>
+<span class="k">elif</span> x &lt;= -<span class="n">10</span>:
+    y = <span class="n">2</span> * x + <span class="n">5</span>
+<span class="k">else</span>:
+    y = x * x - <span class="n">3</span>
+<span class="f">print</span>(y)</pre><div class="out"><span class="in">-4</span>
+13.0</div></div></div></section>
+<section class="slide "><h2>Итоги урока</h2><ul><li>Большая программа — это несколько маленьких функций.</li><li><code>return</code> возвращает результат функции.</li><li><code>try / except</code> не даёт программе упасть от неверного ввода.</li><li>Игру надо тестировать, пытаясь её сломать.</li></ul><div class="note ok">Сыграйте в свою игру с соседом!</div></section>
+</main>
+<script src="../assets/slides.js"></script>
+</body>
+</html>
