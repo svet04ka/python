@@ -550,6 +550,9 @@ function mount(HW){
     delete STORE.hw[HW.id]; saveAll(STORE); location.reload();
   });
   update(); updateSync();
+  // Прогресс, сделанный раньше (например, до подключения таблицы), отправляем при открытии страницы
+  const hasProgress = Object.keys(S.quiz).length || Object.keys(S.bugs).length || tasks.some(T => S.tasks[T.id] && (S.tasks[T.id].done || S.tasks[T.id].tried || (S.tasks[T.id].code || '') !== (T.starter || '')));
+  if (CFG.endpoint && STORE.name && hasProgress) scheduleSend();
   if (location.hash){ const t = document.getElementById(location.hash.slice(1)); if (t) setTimeout(() => t.scrollIntoView(), 50); }
 }
 

@@ -83,6 +83,8 @@ textarea#paste{width:100%;min-height:100px;border:1px solid var(--line);border-r
   const DATA = {};
   A.mount = d => { DATA[d.id] = d; };
   const HWS = LESSONS.filter(L => L.hwId);
+  let paintConn = () => {};
+  const loadingNote = document.getElementById('conn'); loadingNote.innerHTML = '<p class="msg">Загружаю панель…</p>';
   for (const L of HWS){
     await new Promise(res => { const s = document.createElement('script'); s.src = L.hw.replace('.html', '.js'); s.onload = res; s.onerror = res; document.body.appendChild(s); });
   }
@@ -96,7 +98,7 @@ textarea#paste{width:100%;min-height:100px;border:1px solid var(--line);border-r
 
   /* ---------- подключение ---------- */
   const conn = $('#conn');
-  function paintConn(status){
+  paintConn = function (status){
     if (!CFG.endpoint){
       conn.innerHTML = `<h3>Автоматическая отправка не подключена</h3><p>Пока в <code>config.js</code> не указан адрес Google Apps Script, ученики сдают домашку кодом из мессенджера — вставляйте коды внизу страницы. Как подключить автоматику за 10 минут — в <a href="https://github.com/svet04ka/python#автоматическая-отправка-прогресса" target="_blank" rel="noopener">README репозитория</a>.</p>`;
       return;
@@ -113,7 +115,7 @@ textarea#paste{width:100%;min-height:100px;border:1px solid var(--line);border-r
     try {
       const r = await fetch(CFG.endpoint + (CFG.endpoint.includes('?') ? '&' : '?') + 'action=list&key=' + encodeURIComponent(T.pw));
       const j = await r.json();
-      if (!j.ok){ m.innerHTML = j.error === 'key' ? '<b class="no">Неверный пароль.</b>' : '<b class="no">Ошибка таблицы.</b>'; return; }
+      if (!j.ok){ m.innerHTML = j.error === 'key' ? '<b class="no">Неверный пароль.</b> Он должен совпадать с PASSWORD в скрипте. Если вы меняли пароль или код скрипта, разверните новую версию: Развернуть → Управление развёртываниями → карандаш → Версия: «Новая версия» → Развернуть.' : '<b class="no">Ошибка таблицы.</b>'; return; }
       remote = j.rows.map(x => { let d = null; try { d = JSON.parse(x.data); } catch (e) {} return d ? { name: x.name, hw: x.hw, ts: x.ts || d.ts, data: d, src: 'sheet' } : null; }).filter(Boolean);
       m.innerHTML = `<b class="ok">Загружено сдач: ${remote.length}.</b>`;
       $('#upd').textContent = 'Обновлено в ' + new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
